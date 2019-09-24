@@ -105,6 +105,19 @@ class Generator(object):
         self.settings = {'WEBMENTION_FOLDER': '/tmp/webmentions'}
 
 
+def test_article_has_no_webmentions():
+    a1 = Article('stuff.html')
+    g = Generator()
+    g.articles = [a1]
+    process_discussion(g)
+
+    assert len(a1.discussion.reposts) == 0
+    assert len(a1.discussion.likes) == 0
+    assert len(a1.discussion.replies) == 0
+    assert len(a1.discussion.self_replies) == 0
+    assert len(a1.discussion.unclassified) == 0
+
+
 def test_attach_webmentions():
     a1 = Article('stuff1.html')
     a2 = Article('stuff2.html')
@@ -113,15 +126,31 @@ def test_attach_webmentions():
     process_discussion(g)
 
     assert len(a1.discussion.unclassified) == 1
+    assert len(a1.discussion.replies) == 0
+    assert len(a1.discussion.reposts) == 0
+    assert len(a1.discussion.likes) == 0
+    assert len(a1.discussion.self_replies) == 0
+
     assert len(a2.discussion.unclassified) == 1
     assert len(a2.discussion.replies) == 1
+    assert len(a2.discussion.reposts) == 0
+    assert len(a2.discussion.likes) == 0
+    assert len(a2.discussion.self_replies) == 0
 
 
-def test_load_webmentions():
-    all_wm = load_webmentions('/tmp/webmentions')
-    assert len(all_wm) == 2
-    assert '/stuff1.html' in all_wm
-    assert '/stuff2.html' in all_wm
+def test_attach_articles():
+    a1 = Article('stuff3.html')
+    a2 = Article('stuff4.html')
+    a2.in_reply_to = '/stuff3.html'
+    g = Generator()
+    g.articles = [a1, a2]
+    process_discussion(g)
+
+    assert len(a1.discussion.self_replies) == 1
+    assert len(a1.discussion.unclassified) == 0
+    assert len(a1.discussion.replies) == 0
+    assert len(a1.discussion.reposts) == 0
+    assert len(a1.discussion.likes) == 0
 
 
 def teardown():
