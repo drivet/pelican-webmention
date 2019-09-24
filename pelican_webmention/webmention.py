@@ -48,28 +48,29 @@ def extract_target_path(webmention):
 
 
 def attach_webmentions(article, all_webmentions):
-    wm = all_webmentions[f'/{article.url}']
-    comment = mf2util.interpret_comment(wm['parsedSource'],
-                                        wm['sourceUrl'],
-                                        [wm['targetUrl']])
-    if comment['comment_type']:
-        comment_type = comment['comment_type'][0]
-        if comment_type == 'like':
-            article.discussion.likes.append(comment)
-        elif comment_type == 'repost':
-            article.discussion.reposts.append(comment)
-        elif comment_type == 'reply':
-            article.discussion.replies.append(comment)
+    wm_for_article = all_webmentions.get(f'/{article.url}', [])
+    for wm in wm_for_article:
+        comment = mf2util.interpret_comment(wm['parsedSource'],
+                                            wm['sourceUrl'],
+                                            [wm['targetUrl']])
+        if comment['comment_type']:
+            comment_type = comment['comment_type'][0]
+            if comment_type == 'like':
+                article.discussion.likes.append(comment)
+            elif comment_type == 'repost':
+                article.discussion.reposts.append(comment)
+            elif comment_type == 'reply':
+                article.discussion.replies.append(comment)
+            else:
+                print(f'Unrecognized comment type: {comment_type}')
+                article.discussion.unclassified.append(comment)
         else:
-            print(f'Unrecognized comment type: {comment_type}')
+            print('No comment type parsed')
             article.discussion.unclassified.append(comment)
-    else:
-        print('No comment type parsed')
-        article.discussion.unclassified.append(comment)
 
 
 def attach_article_to_parent(article, all_articles):
-    if not article.in_reply_to:
+    if not hasattr(article, 'in_reply_to') or not article.in_reply_to:
         return
 
     in_reply_to = startslash(urlparse(article.in_reply_to).path)
