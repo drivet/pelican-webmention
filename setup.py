@@ -22,7 +22,7 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pelican', 'mf2util'
+    'pelican', 'mf2util', 'ronkyuu', 'pyyaml'
 ]
 
 # What packages are optional?
