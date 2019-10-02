@@ -1,4 +1,4 @@
-from pelican_webmention.outgoing import make_mentionable_input, queue_outgoing
+from pelican_webmention.outgoing import queue_outgoing
 
 
 class Article(object):
@@ -32,7 +32,7 @@ def test_should_handle_article_with_no_mentions():
     queue_outgoing(cache, siteurl, input_headers, articles)
     assert len(cache['excluded_domains']) == 0
     assert len(cache['results']) == 1
-    assert len(cache['results']['/stuff/blah']) == 0
+    assert len(cache['results']['stuff/blah']) == 0
 
 
 def test_should_handle_article_with_excluded_mentions():
@@ -46,7 +46,7 @@ def test_should_handle_article_with_excluded_mentions():
     queue_outgoing(cache, siteurl, input_headers, articles)
     assert len(cache['excluded_domains']) == 1
     assert len(cache['results']) == 1
-    assert len(cache['results']['/stuff/blah']) == 0
+    assert len(cache['results']['stuff/blah']) == 0
 
 
 def test_should_handle_article_with_content_mentions():
@@ -60,8 +60,8 @@ def test_should_handle_article_with_content_mentions():
     queue_outgoing(cache, siteurl, input_headers, articles)
     assert len(cache['excluded_domains']) == 0
     assert len(cache['results']) == 1
-    assert len(cache['results']['/stuff/blah']) == 1
-    assert cache['results']['/stuff/blah'] == \
+    assert len(cache['results']['stuff/blah']) == 1
+    assert cache['results']['stuff/blah'] == \
         {'http://hahaha.com/status/123': None}
 
 
@@ -77,7 +77,7 @@ def test_should_handle_article_with_header_and_content_mentions():
     queue_outgoing(cache, siteurl, input_headers, articles)
     assert len(cache['excluded_domains']) == 0
     assert len(cache['results']) == 1
-    assert len(cache['results']['/stuff/blah']) == 2
-    assert cache['results']['/stuff/blah'] == \
+    assert len(cache['results']['stuff/blah']) == 2
+    assert cache['results']['stuff/blah'] == \
         {'http://reply.com/qwerty/joke': None,
          'http://hahaha.com/status/123': None}

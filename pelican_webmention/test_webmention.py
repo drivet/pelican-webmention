@@ -1,7 +1,6 @@
 import json
 import os
-from pelican_webmention.webmention import load_webmentions, \
-    process_discussion, Discussion
+from pelican_webmention.webmention import process_discussion, Discussion
 
 
 WEBMENTION_01 = {

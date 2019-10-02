@@ -14,7 +14,7 @@ def queue_outgoing_gen(generator):
 
 def queue_outgoing(cache, siteurl, content_headers, articles):
     for article in list(articles):
-        url = f'/{article.url}'
+        url = article.url
         if url in cache['results']:
             continue
 

@@ -2,21 +2,37 @@ import argparse
 import os
 import requests
 import pprint
-from pelican_webmention.utils import load_cache
+from pelican_webmention.utils import load_cache, save_cache
 from ronkyuu import sendWebmention
 from urllib.parse import urlparse
 
 
-def send_webmention(site_url, source_url, target_url):
-    abs_url = os.path.join(site_url, source_url)
-    print(f'sending webmention from {abs_url} to {target_url}')
-    r = sendWebmention(abs_url, target_url)
-    if r is None:
-        print('Webmention failed due to lack of endpoint')
-    elif not r.ok:
-        print(f'Webmention failed with {r.status_code}')
-        print(f'Error information {r.json()}')
-    return r
+def main():
+    args = get_args()
+    cache = load_cache()
+
+    execute(args, cache)
+
+    if not args.dry_run:
+        save_cache(cache)
+
+
+def execute(args, cache):
+    to_send = get_all_webmentions(cache)
+    if not args.dry_run:
+        results, excluded = send_all_webmentions(cache['site_url'], to_send)
+        merge_results(cache, results, excluded)
+    else:
+        print('would send these webmentions: ')
+        pp = pprint.PrettyPrinter()
+        pp.pprint(to_send)
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run",
+                        help="show what would be done but do not do it")
+    return parser.parse_args()
 
 
 # Return dictionary of source to target list
@@ -53,7 +69,7 @@ def send_all_webmentions(site_url, to_send):
 
             if r is None:
                 url = urlparse(target_url)
-                excluded.append(url.hostname)
+                excluded.add(url.hostname)
             elif r.status_code == requests.codes.created:
                 results[source_url][target_url] = {
                     'status_code': r.status_code,
@@ -66,6 +82,18 @@ def send_all_webmentions(site_url, to_send):
     return results, excluded
 
 
+def send_webmention(site_url, source_url, target_url):
+    abs_url = os.path.join(site_url, source_url)
+    print(f'sending webmention from {abs_url} to {target_url}')
+    r = sendWebmention(abs_url, target_url)
+    if r is None:
+        print('Webmention failed due to lack of endpoint')
+    elif not r.ok:
+        print(f'Webmention failed with {r.status_code}')
+        print(f'Error information {r.json()}')
+    return r
+
+
 def merge_results(cache, results, excluded):
     for e in excluded:
         if e not in cache['excluded_domains']:
@@ -73,23 +101,3 @@ def merge_results(cache, results, excluded):
 
     for source_url in results.keys():
         cache['results'][source_url] = results[source_url]
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run",
-                        help="show what would be done but do not do it")
-    return parser.parse_args()
-
-
-def main():
-    args = get_args()
-    cache = load_cache(os.getcwd())
-    to_send = get_all_webmentions(cache)
-    if not args.dry_run:
-        results, excluded = send_all_webmentions(cache['site_url'], to_send)
-        merge_results(cache, results, excluded)
-    else:
-        print('would send these webmentions: ')
-        pp = pprint.PrettyPrinter()
-        pp.pprint(to_send)
