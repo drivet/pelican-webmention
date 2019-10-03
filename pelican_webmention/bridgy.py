@@ -19,7 +19,7 @@ def init_bridgy_metadata(generator, metadata):
         metadata['mp_syndicate_to'] = metadata['mp_syndicate_to'].split(',')
 
     # these headers normally come from micropub, and will heance be lists,
-    # but when they come from a traditional Markdown file (when they are
+    # but when they come from a traditional Markdown file (where they are
     # strings) we need to turn the values into lists
     for header in generator.settings['WEBMENTIONS_CONTENT_HEADERS']:
         if header not in metadata:
@@ -36,13 +36,14 @@ def init_bridgy_metadata(generator, metadata):
 # alter the content of the article so that we will send webmention to bridgy
 # if required
 def bridgify_content(instance):
-    publish_tokens = set()
+    publish_tokens = []
     settings = instance.settings
 
     mp_syndicate_map = settings['WEBMENTION_BRIDGY_MP_SYNDICATE_MAP']
-    for token in instance.metadata['mp_syndicate_to']:
-        if token in mp_syndicate_map:
-            publish_tokens.add(mp_syndicate_map[token])
+    for token in instance.metadata.get('mp_syndicate_to', []):
+        if token in mp_syndicate_map and \
+           mp_syndicate_map[token] not in publish_tokens:
+            publish_tokens.append(mp_syndicate_map[token])
 
     publish_headers = settings['WEBMENTION_BRIDGY_PUBLISH']
 
@@ -51,10 +52,10 @@ def bridgify_content(instance):
         if header not in instance.metadata:
             continue
 
-        for header_url in instance[header]:
+        for header_url in instance.metadata[header]:
             url = urlparse(header_url)
-            if url.hostname == domain:
-                publish_tokens.add(token)
+            if url.hostname == domain and token not in publish_tokens:
+                publish_tokens.append(token)
 
     bridgy_urls = [PUBLISH_TOKENS[token] for token in publish_tokens]
     bridgy_anchors = [make_anchor(url) for url in bridgy_urls]
@@ -62,7 +63,12 @@ def bridgify_content(instance):
         instance._content += '\n' + '\n'.join(bridgy_anchors)
 
 
-def attach_bridgy_syndication(generator):
+def attach_bridgy_syndication_pelican(generator):
+    """Entry point for pelican"""
+    attach_bridgy_syndication(load_cache(), generator.articles)
+
+
+def attach_bridgy_syndication(cache, articles):
     """Attach a bridgy specific syndication value to the article metadata using
     the webmention cache file, in case template want to make use of the
     result.
@@ -72,9 +78,8 @@ def attach_bridgy_syndication(generator):
     syndication location.
 
     """
-    cache = load_cache()
-    for article in list(generator.articles):
-        url = f'/{article.url}'
+    for article in list(articles):
+        url = article.url
         if url not in cache['results']:
             continue
 
