@@ -1,6 +1,11 @@
 import yaml
 
 
+def get_content_headers(settings):
+    return settings.get('WEBMENTIONS_CONTENT_HEADERS',
+                        ['like_of', 'repost_of', 'in_reply_to'])
+
+
 def make_anchor(url):
     return '<a href="' + url + '"></a>'
 

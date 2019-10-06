@@ -1,4 +1,5 @@
-from pelican_webmention.utils import load_cache, make_anchor
+from pelican_webmention.utils import load_cache, make_anchor, \
+    get_content_headers
 from urllib.parse import urlparse
 
 
@@ -21,7 +22,7 @@ def init_bridgy_metadata(generator, metadata):
     # these headers normally come from micropub, and will heance be lists,
     # but when they come from a traditional Markdown file (where they are
     # strings) we need to turn the values into lists
-    for header in generator.settings['WEBMENTIONS_CONTENT_HEADERS']:
+    for header in get_content_headers(generator.settings):
         if header not in metadata:
             metadata[header] = []
         elif isinstance(metadata[header], str):
@@ -31,6 +32,8 @@ def init_bridgy_metadata(generator, metadata):
     # this attribute so be careful
     if 'syndication' not in metadata:
         metadata['syndication'] = []
+    elif isinstance(metadata['syndication'], str):
+        metadata['syndication'] = metadata['syndication'].split(',')
 
 
 # alter the content of the article so that we will send webmention to bridgy
@@ -39,13 +42,13 @@ def bridgify_content(instance):
     publish_tokens = []
     settings = instance.settings
 
-    mp_syndicate_map = settings['WEBMENTION_BRIDGY_MP_SYNDICATE_MAP']
+    mp_syndicate_map = settings.get('WEBMENTION_BRIDGY_MP_SYNDICATE_MAP', {})
     for token in instance.metadata.get('mp_syndicate_to', []):
         if token in mp_syndicate_map and \
            mp_syndicate_map[token] not in publish_tokens:
             publish_tokens.append(mp_syndicate_map[token])
 
-    publish_headers = settings['WEBMENTION_BRIDGY_PUBLISH']
+    publish_headers = settings.get('WEBMENTION_BRIDGY_PUBLISH', [])
 
     for ph in publish_headers:
         (header, domain, token) = ph
@@ -63,7 +66,7 @@ def bridgify_content(instance):
         instance._content += '\n' + '\n'.join(bridgy_anchors)
 
 
-def attach_bridgy_syndication_pelican(generator):
+def attach_bridgy_syndication_gen(generator):
     """Entry point for pelican"""
     attach_bridgy_syndication(load_cache(), generator.articles)
 
@@ -86,6 +89,6 @@ def attach_bridgy_syndication(cache, articles):
         target_results = cache['results'][url]
 
         locations = [r['location'] for r in list(target_results.values())
-                     if 'location' in r]
+                     if r and isinstance(r, dict) and 'location' in r]
 
         article.syndication += locations

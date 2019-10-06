@@ -1,13 +1,14 @@
 import os
 from ronkyuu import findMentions
-from pelican_webmention.utils import load_cache, save_cache, make_anchor
+from pelican_webmention.utils import load_cache, save_cache, make_anchor, \
+    get_content_headers
 
 
 def queue_outgoing_gen(generator):
     cache = load_cache()
     queue_outgoing(cache,
                    generator.settings['SITEURL'],
-                   generator.settings['WEBMENTIONS_CONTENT_HEADERS'],
+                   get_content_headers(generator.settings),
                    generator.articles)
     save_cache(cache)
 

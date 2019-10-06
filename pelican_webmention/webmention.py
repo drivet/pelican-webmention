@@ -10,6 +10,7 @@ class Discussion(object):
         self.reposts = []
         self.replies = []
         self.self_replies = []
+        self.all_replies = []
         self.unclassified = []
 
 
@@ -18,7 +19,8 @@ def setup_webmentions(generator, metadata):
 
 
 def process_discussion(generator):
-    all_webmentions = load_webmentions(generator.settings['WEBMENTION_FOLDER'])
+    wfolder = generator.settings.get('WEBMENTION_FOLDER', '../webmentions')
+    all_webmentions = load_webmentions(wfolder)
     all_articles = {}
     for article in list(generator.articles):
         # save indexed article for lookup later
@@ -27,6 +29,10 @@ def process_discussion(generator):
 
     for article in list(generator.articles):
         attach_article_to_parent(article, all_articles)
+
+    for article in list(generator.articles):
+        d = article.discussion
+        d.all_replies = d.replies + d.self_replies
 
 
 def load_webmentions(wm_root):
@@ -73,12 +79,13 @@ def attach_article_to_parent(article, all_articles):
     if not hasattr(article, 'in_reply_to') or not article.in_reply_to:
         return
 
-    in_reply_to = startslash(urlparse(article.in_reply_to).path)
+    for in_reply_to_str in article.in_reply_to:
+        in_reply_to = startslash(urlparse(in_reply_to_str).path)
 
-    if in_reply_to not in all_articles:
-        return
+        if in_reply_to not in all_articles:
+            continue
 
-    all_articles[in_reply_to].discussion.self_replies.append(article)
+        all_articles[in_reply_to].discussion.self_replies.append(article)
 
 
 def read_whole_file(filename):

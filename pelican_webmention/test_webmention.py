@@ -140,7 +140,7 @@ def test_attach_webmentions():
 def test_attach_articles():
     a1 = Article('stuff3.html')
     a2 = Article('stuff4.html')
-    a2.in_reply_to = '/stuff3.html'
+    a2.in_reply_to = ['/stuff3.html']
     g = Generator()
     g.articles = [a1, a2]
     process_discussion(g)
