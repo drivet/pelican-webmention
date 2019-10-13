@@ -1,5 +1,4 @@
-from pelican_webmention.utils import load_cache, make_anchor, \
-    get_content_headers
+from pelican_webmention.utils import load_cache, make_anchor
 from urllib.parse import urlparse
 
 
@@ -18,15 +17,6 @@ def init_bridgy_metadata(generator, metadata):
     elif isinstance(metadata['mp_syndicate_to'], str):
         # so we can handle traditional markdown metadata
         metadata['mp_syndicate_to'] = metadata['mp_syndicate_to'].split(',')
-
-    # these headers normally come from micropub, and will heance be lists,
-    # but when they come from a traditional Markdown file (where they are
-    # strings) we need to turn the values into lists
-    for header in get_content_headers(generator.settings):
-        if header not in metadata:
-            metadata[header] = []
-        elif isinstance(metadata[header], str):
-            metadata[header] = metadata[header].split(',')
 
     # Initialize if syndication is not there.  Other plugins could mess with
     # this attribute so be careful

@@ -49,29 +49,6 @@ def test_should_init_syndication():
     assert metadata['syndication'] == []
 
 
-def test_should_init_content_header():
-    metadata = {}
-    settings = {
-        'WEBMENTIONS_CONTENT_HEADERS': ['in_reply_to', 'like_of']
-    }
-    init_bridgy_metadata(Generator(settings), metadata)
-    assert metadata['in_reply_to'] == []
-    assert metadata['like_of'] == []
-
-
-def test_should_split_content_headers():
-    metadata = {
-        'in_reply_to': 'hello,goodbye',
-        'like_of': 'blah,stuff'
-    }
-    settings = {
-        'WEBMENTIONS_CONTENT_HEADERS': ['in_reply_to', 'like_of']
-    }
-    init_bridgy_metadata(Generator(settings), metadata)
-    assert metadata['in_reply_to'] == ['hello', 'goodbye']
-    assert metadata['like_of'] == ['blah', 'stuff']
-
-
 def test_should_add_locations_to_articles():
     cache = {
         'site_url': 'http://example.com',

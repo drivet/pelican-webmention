@@ -3,7 +3,7 @@ import os
 import requests
 import pprint
 from pelican_webmention.utils import load_cache, save_cache
-from ronkyuu import sendWebmention
+from ronkyuu import sendWebmention, discoverEndpoint
 from urllib.parse import urlparse
 
 
@@ -31,7 +31,8 @@ def execute(args, cache):
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run",
-                        help="show what would be done but do not do it")
+                        help="show what would be done but do not do it",
+                        action="store_true")
     return parser.parse_args()
 
 
@@ -58,6 +59,7 @@ def send_all_webmentions(site_url, to_send):
     excluded = set()
     results = {}
     for source_url in to_send.keys():
+        print('processing source url: {source_url}')
         for target_url in to_send[source_url]:
             if target_url in excluded:
                 continue
@@ -85,13 +87,17 @@ def send_all_webmentions(site_url, to_send):
 def send_webmention(site_url, source_url, target_url):
     abs_url = os.path.join(site_url, source_url)
     print(f'sending webmention from {abs_url} to {target_url}')
-    r = sendWebmention(abs_url, target_url)
-    if r is None:
-        print('Webmention failed due to lack of endpoint')
-    elif not r.ok:
-        print(f'Webmention failed with {r.status_code}')
-        print(f'Error information {r.json()}')
-    return r
+    status, endpoint_url = discoverEndpoint(target_url)
+    if status == requests.codes.ok and endpoint_url is not None:
+        r = sendWebmention(abs_url, target_url, endpoint_url)
+        if not r.ok:
+            print(f'Webmention failed with {r.status_code}')
+            print(f'Error information {r.json()}')
+        return r
+    else:
+        print(f'Failed to discover endpoint: status: {status}, ' +
+              f'endpoint: {endpoint_url}')
+        return None
 
 
 def merge_results(cache, results, excluded):
@@ -101,3 +107,7 @@ def merge_results(cache, results, excluded):
 
     for source_url in results.keys():
         cache['results'][source_url] = results[source_url]
+
+
+if __name__ == '__main__':
+    main()
