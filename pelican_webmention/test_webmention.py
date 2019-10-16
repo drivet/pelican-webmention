@@ -95,7 +95,7 @@ def save_json(filename, data):
 class Article(object):
     def __init__(self, url):
         self.url = url
-        self.discussion = Discussion()
+        self.webmentions = Discussion()
 
 
 class Generator(object):
@@ -110,10 +110,10 @@ def test_article_has_no_webmentions():
     g.articles = [a1]
     process_discussion(g)
 
-    assert len(a1.discussion.reposts) == 0
-    assert len(a1.discussion.likes) == 0
-    assert len(a1.discussion.replies) == 0
-    assert len(a1.discussion.unclassified) == 0
+    assert len(a1.webmentions.reposts) == 0
+    assert len(a1.webmentions.likes) == 0
+    assert len(a1.webmentions.replies) == 0
+    assert len(a1.webmentions.unclassified) == 0
 
 
 def test_attach_webmentions():
@@ -123,15 +123,15 @@ def test_attach_webmentions():
     g.articles = [a1, a2]
     process_discussion(g)
 
-    assert len(a1.discussion.unclassified) == 1
-    assert len(a1.discussion.replies) == 0
-    assert len(a1.discussion.reposts) == 0
-    assert len(a1.discussion.likes) == 0
+    assert len(a1.webmentions.unclassified) == 1
+    assert len(a1.webmentions.replies) == 0
+    assert len(a1.webmentions.reposts) == 0
+    assert len(a1.webmentions.likes) == 0
 
-    assert len(a2.discussion.unclassified) == 1
-    assert len(a2.discussion.replies) == 1
-    assert len(a2.discussion.reposts) == 0
-    assert len(a2.discussion.likes) == 0
+    assert len(a2.webmentions.unclassified) == 1
+    assert len(a2.webmentions.replies) == 1
+    assert len(a2.webmentions.reposts) == 0
+    assert len(a2.webmentions.likes) == 0
 
 
 def teardown():

@@ -18,7 +18,9 @@ class Request(object):
 
 
 @patch('pelican_webmention.send.sendWebmention')
-def test_empty_queue_does_not_change_cache(send_webmention_mock):
+@patch('pelican_webmention.send.discoverEndpoint')
+def test_empty_queue_does_not_change_cache(discover_endpoint_mock,
+                                           send_webmention_mock):
     cache = {
         'site_url': 'http://example.com',
         'excluded_domains': [],
@@ -37,9 +39,12 @@ def test_empty_queue_does_not_change_cache(send_webmention_mock):
 
 
 @patch('pelican_webmention.send.sendWebmention')
-def test_should_send_successful_webmention(send_webmention_mock):
+@patch('pelican_webmention.send.discoverEndpoint')
+def test_should_send_successful_webmention(discover_endpoint_mock,
+                                           send_webmention_mock):
     source_url = 'http://example.com/stuff/blah'
     target_url = 'http://reply.com/qwerty/joke'
+    endpoint_url = 'https://the-endpoint.com'
     cache = {
         'site_url': 'http://example.com',
         'excluded_domains': [],
@@ -50,10 +55,12 @@ def test_should_send_successful_webmention(send_webmention_mock):
         }
     }
     args = Args(False)
+    discover_endpoint_mock.return_value = (200, endpoint_url)
     send_webmention_mock.return_value = \
         Request(201, 'http://twitter.com/status/123')
     execute(args, cache)
-    send_webmention_mock.assert_called_once_with(source_url, target_url)
+    send_webmention_mock.assert_called_once_with(source_url, target_url,
+                                                 endpoint_url)
     source = cache['results']['stuff/blah']
     send_result = source['http://reply.com/qwerty/joke']
     assert send_result is not None
@@ -62,9 +69,12 @@ def test_should_send_successful_webmention(send_webmention_mock):
 
 
 @patch('pelican_webmention.send.sendWebmention')
-def test_should_send_failed_webmention(send_webmention_mock):
+@patch('pelican_webmention.send.discoverEndpoint')
+def test_should_send_failed_webmention(discover_endpoint_mock,
+                                       send_webmention_mock):
     source_url = 'http://example.com/stuff/blah'
     target_url = 'http://reply.com/qwerty/joke'
+    endpoint_url = 'https://the-endpoint.com'
     cache = {
         'site_url': 'http://example.com',
         'excluded_domains': [],
@@ -76,8 +86,10 @@ def test_should_send_failed_webmention(send_webmention_mock):
     }
     args = Args(False)
     send_webmention_mock.return_value = Request(400)
+    discover_endpoint_mock.return_value = (200, endpoint_url)
     execute(args, cache)
-    send_webmention_mock.assert_called_once_with(source_url, target_url)
+    send_webmention_mock.assert_called_once_with(source_url, target_url,
+                                                 endpoint_url)
     source = cache['results']['stuff/blah']
     send_result = source['http://reply.com/qwerty/joke']
     assert send_result is not None
@@ -86,7 +98,9 @@ def test_should_send_failed_webmention(send_webmention_mock):
 
 
 @patch('pelican_webmention.send.sendWebmention')
-def test_should_not_send_excluded_webmention(send_webmention_mock):
+@patch('pelican_webmention.send.discoverEndpoint')
+def test_should_not_send_excluded_webmention(discover_endpoint_mock,
+                                             send_webmention_mock):
     target_url = 'http://twitter.com/qwerty/joke'
     cache = {
         'site_url': 'http://example.com',
@@ -98,12 +112,15 @@ def test_should_not_send_excluded_webmention(send_webmention_mock):
         }
     }
     args = Args(False)
+    discover_endpoint_mock.return_value = (200, 'https://the-endpoint.com')
     execute(args, cache)
     send_webmention_mock.assert_not_called
 
 
 @patch('pelican_webmention.send.sendWebmention')
-def test_should_not_send_if_no_endpoint(send_webmention_mock):
+@patch('pelican_webmention.send.discoverEndpoint')
+def test_should_not_send_if_no_endpoint(discover_endpoint_mock,
+                                        send_webmention_mock):
     target_url = 'http://reply.com/qwerty/joke'
     cache = {
         'site_url': 'http://example.com',
@@ -115,6 +132,7 @@ def test_should_not_send_if_no_endpoint(send_webmention_mock):
         }
     }
     args = Args(False)
+    discover_endpoint_mock.return_value = (200, None)
     send_webmention_mock.return_value = None
     execute(args, cache)
     send_webmention_mock.assert_not_called
