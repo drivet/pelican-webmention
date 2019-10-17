@@ -11,21 +11,28 @@ def main():
     args = get_args()
     cache = load_cache()
 
-    execute(args, cache)
-
-    if not args.dry_run:
+    if execute(args, cache):
+        print(f'Saving cache (commit = {args.commit_cache})')
         save_cache(cache, args.commit_cache)
 
 
 def execute(args, cache):
     to_send = get_all_webmentions(cache)
-    if not args.dry_run:
-        results, excluded = send_all_webmentions(cache['site_url'], to_send)
-        merge_results(cache, results, excluded)
+    if len(to_send) > 0:
+        if not args.dry_run:
+            print(f'Processing {len(to_send)} webmention attempt(s)')
+            results, excluded = send_all_webmentions(cache['site_url'],
+                                                     to_send)
+            merge_results(cache, results, excluded)
+            return True
+        else:
+            print('Would send these webmentions: ')
+            pp = pprint.PrettyPrinter()
+            pp.pprint(to_send)
+            return False
     else:
-        print('Would send these webmentions: ')
-        pp = pprint.PrettyPrinter()
-        pp.pprint(to_send)
+        print('No webmentions to send')
+        return False
 
 
 def get_args():
