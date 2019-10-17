@@ -30,7 +30,8 @@ def save_cache(cache, commit=False):
     filename = 'webmention_cache.yml'
     save_yaml(filename, cache)
     if commit:
-        contents = load_yaml(filename)
+        with open(filename) as f:
+            contents = f.read()
         url = f'{get_repo_api_root()}/{filename}'
         commit_cache(url, contents)
 
