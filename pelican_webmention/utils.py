@@ -28,7 +28,7 @@ def load_cache():
 
 def save_cache(cache, commit=False):
     filename = 'webmention_cache.yml'
-    save_yaml(filename, cache, commit)
+    save_yaml(filename, cache)
     if commit:
         contents = load_yaml(filename)
         url = f'{get_repo_api_root()}/{filename}'
