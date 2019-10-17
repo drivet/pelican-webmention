@@ -26,7 +26,7 @@ def load_cache():
         return cache
 
 
-def save_cache(cache, commit):
+def save_cache(cache, commit=False):
     filename = 'webmention_cache.yml'
     save_yaml(filename, cache, commit)
     if commit:
