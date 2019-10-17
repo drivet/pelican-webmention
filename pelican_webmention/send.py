@@ -14,7 +14,7 @@ def main():
     execute(args, cache)
 
     if not args.dry_run:
-        save_cache(cache)
+        save_cache(cache, args.commit_cache)
 
 
 def execute(args, cache):
@@ -32,6 +32,9 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run",
                         help="show what would be done but do not do it",
+                        action="store_true")
+    parser.add_argument("--commit-cache",
+                        help="commit the cache to github if set",
                         action="store_true")
     return parser.parse_args()
 
