@@ -5,6 +5,9 @@ from pelican_webmention.utils import load_cache, save_cache, make_anchor, \
 
 
 def queue_outgoing_gen(generator):
+    if not generator.settings.get('WEBMENTIONS_GENERATE_OUTGOING', False):
+        return
+
     cache = load_cache()
     queue_outgoing(cache,
                    generator.settings['SITEURL'],
