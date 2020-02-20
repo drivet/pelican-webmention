@@ -9,6 +9,7 @@ class Discussion(object):
         self.likes = []
         self.reposts = []
         self.replies = []
+        self.bookmarks = []
         self.unclassified = []
 
 
@@ -59,8 +60,11 @@ def attach_webmentions(article, all_webmentions):
                 print(f'Unrecognized comment type: {comment_type}')
                 article.webmentions.unclassified.append(comment)
         else:
-            print('No comment type parsed')
-            article.webmentions.unclassified.append(comment)
+            if 'bookmark-of' in comment:
+                article.webmentions.bookmarks.append(comment)
+            else:
+                print('No comment type parsed: ' + wm['sourceUrl'])
+                article.webmentions.unclassified.append(comment)
 
 
 def read_whole_file(filename):
