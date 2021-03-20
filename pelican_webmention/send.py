@@ -69,7 +69,7 @@ def send_all_webmentions(site_url, to_send):
     excluded = set()
     results = {}
     for source_url in to_send.keys():
-        print('Processing source url: {source_url}')
+        print(f'Processing source url: {source_url}')
         for target_url in to_send[source_url]:
             if target_url in excluded:
                 continue

@@ -46,6 +46,7 @@ def load_yaml(filename):
 
 
 def save_yaml(filename, cache):
+    print(f'Saving YAML: {filename}')
     try:
         with open(filename, 'w') as f:
             yaml.dump(cache, f)
@@ -60,11 +61,14 @@ def get_repo_api_root():
 
 
 def commit_cache(url, contents):
+    print(f'Commiting cache: {url}')
     sha = None
     fetch_response = requests.get(url, auth=(os.environ['GITHUB_USERNAME'],
                                              os.environ['GITHUB_PASSWORD']))
     if fetch_response.ok:
         sha = fetch_response.json()['sha']
+    else:
+        print(f'Fetch response was not ok {fetch_response.ok}')
     commit_file(url, contents, sha)
 
 
