@@ -33,7 +33,6 @@ def save_cache(cache, commit=False):
         with open(filename) as f:
             contents = f.read()
         url = f'{get_repo_api_root()}/{filename}'
-        print(f'WHOLE FILE {contents}')
         commit_cache(url, contents)
 
 
@@ -66,11 +65,16 @@ def commit_cache(url, contents):
     sha = None
     fetch_response = requests.get(url, auth=(os.environ['GITHUB_USERNAME'],
                                              os.environ['GITHUB_PASSWORD']))
+    print(f'fetch response: {fetch_response}')
     if fetch_response.ok:
         sha = fetch_response.json()['sha']
+        print(f'old contents SHA {sha}')
     else:
         print(f'Fetch response was not ok {fetch_response.ok}')
-    commit_file(url, contents, sha)
+    commit_response = commit_file(url, contents, sha)
+    print(f'commit response: {commit_response}')
+    if not commit_response.ok:
+        print(f'Error comitting contents')
 
 
 def commit_file(url, contents, sha):
