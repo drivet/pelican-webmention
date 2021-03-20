@@ -78,7 +78,7 @@ def send_all_webmentions(site_url, to_send):
                 results[source_url] = {}
 
             r = send_webmention(site_url, source_url, target_url)
-
+            print(f'Result: {r}')
             if r is None:
                 url = urlparse(target_url)
                 excluded.add(url.hostname)
