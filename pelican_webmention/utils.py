@@ -33,6 +33,7 @@ def save_cache(cache, commit=False):
         with open(filename) as f:
             contents = f.read()
         url = f'{get_repo_api_root()}/{filename}'
+        print(f'WHOLE FILE {contents}')
         commit_cache(url, contents)
 
 
